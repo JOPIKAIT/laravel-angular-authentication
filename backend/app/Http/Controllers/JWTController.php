@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User;
 use Validator;
-
+use Illuminate\Support\Facades\Hash;
 class JWTController extends Controller
 {
     /**
@@ -27,7 +28,7 @@ class JWTController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:2|max:100',
             'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|confirmed|min:6',
+            'password' => 'required|string|min:6',
         ]);
 
         if($validator->fails()) {
@@ -54,8 +55,8 @@ class JWTController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string|min:6',
+            'email' => 'required',
+            'password' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -63,7 +64,8 @@ class JWTController extends Controller
         }
 
         if (!$token = auth()->attempt($validator->validated())) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            dd("ola");
+            return response()->json(['error' => 'Email ou password não existem'], 401);
         }
 
         return $this->respondWithToken($token);
@@ -116,5 +118,17 @@ class JWTController extends Controller
             'expires_in' => auth()->factory()->getTTL() * 60,
             'user' => auth()->user()->name
         ]);
+    }
+
+    public function viewUsers(){
+        $users = User::all();
+        if(!$users){
+            return response()->json([
+                'success' => false,
+                'message' => 'Nenhum usuario registado'                
+            ]);
+        }else{
+            return $users;
+        }
     }
 }
